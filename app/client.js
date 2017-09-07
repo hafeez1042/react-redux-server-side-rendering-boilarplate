@@ -1,12 +1,12 @@
 
 import React from 'react';
 import { render } from 'react-dom';
-import { Router, browserHistory } from 'react-router';
+import { BrowserRouter } from 'react-router-dom';
 import { Provider } from 'react-redux';
 import { createStore, applyMiddleware, compose } from 'redux';
 import thunk from 'redux-thunk';
 
-import routes from './routes';
+import Routes from './routes';
 import reducers from './reducers';
 
 // Grab the state from a global variable injected into the server-generated HTML
@@ -32,7 +32,9 @@ const store = createStore(reducers, preloadedState, enhancer);
 
 render(
   <Provider store={store}>
-    <Router routes={routes} history={browserHistory} />
-  </Provider>, 
+    <BrowserRouter>
+      <Routes/>
+    </BrowserRouter>
+  </Provider>,
   document.getElementById('root')
 );

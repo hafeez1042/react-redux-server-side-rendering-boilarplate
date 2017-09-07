@@ -15,7 +15,7 @@ app.use(require('webpack-dev-middleware')(compiler, {
 
 app.use(require('webpack-hot-middleware')(compiler));
 
-app.get('/test1', render.loadDummyUser);
+// app.get('/test1', render.loadDummyUser);
 app.get('*', render.default);
 
 

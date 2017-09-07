@@ -1,37 +1,52 @@
-import { match } from 'react-router';
+import React from 'react';
+import { Provider } from 'react-redux';
+import { createStore, applyMiddleware } from 'redux';
+import { renderToString } from 'react-dom/server';
+import thunk from 'redux-thunk';
+import { StaticRouter } from 'react-router-dom';
 
-import routes from './routes';
-import store from './store';
-// import App from './components/App';
-import { fetchDummyUsers } from './api/dummy';
+import App from './routes';
 
+import reducers from './reducers';
+import template from './template';
 
 export default (req, res) => {
-  route(req, res, props => store(res, props) );
-};
+  const context = {};
+  const initialState = {};
+  // `RouterContext` is what the `Router` renders. `Router` keeps these
+  // `props` in its state as it listens to `browserHistory`. But on the
+  // server our app is stateless, so we need to use `match` to
+  // get these props before rendering.
+  const store = createStore(reducers, initialState, applyMiddleware(thunk));
 
-export const loadDummyUser = (req, res) => {
-  route(req, res, props => {
-    fetchDummyUsers( (result) => {
-      let initialState = { dummy: result };
-      store(res, props, initialState);
+  const appHtml = renderToString(
+    <Provider store={store}>
+      <StaticRouter
+        location={req.url}
+        context={context}
+      >
+        <App/>
+      </StaticRouter>
+    </Provider>
+  );
+
+  // Grab the initial state from our Redux store
+  const preloadedState = store.getState();
+
+  // dump the HTML into a template, lots of ways to do this, but none are
+  // really influenced by React Router, so we're just using a little
+  // function, `renderPage`
+  // res.send(renderPage(appHtml))
+  if (context.url) {
+    res.writeHead(301, {
+      Location: context.url,
     });
-  });
-};
-
-
-
-
-const route = ( req, res, callback ) => {
-  match({ routes, location: req.url }, (err, redirect, props) => {
-    if (err) {
-      res.status(500).send(err.message);
-    } else if (redirect) {
-      res.redirect(302, redirect.pathname + redirect.search);
-    } else if (props) {
-      callback(props);
-    } else {
-      res.status(404).send('Not Found');
-    }
-  });
+    res.end();
+  } else {
+    res.send(template(appHtml, preloadedState));
+  }
+  // res.send(template({
+  //   body: appHtml,
+  //   title: 'FROM THE SERVER',
+  // }));
 };

@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import { dummyData } from '../../actions/LoadDummyData';
-import { Link } from 'react-router';
+import { Link } from 'react-router-dom';
 
 class Test1 extends Component {
   constructor(props) {
